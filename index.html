@@ -1,329 +1,307 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, ArrowUpRight, ExternalLink } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anna Mills Design Replica</title>
+    
+    <!-- 1. Tailwind CSS 불러오기 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. React & ReactDOM 불러오기 -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 3. Babel (JSX 번역기) 불러오기 -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-// Static Data: Project Information only (removed position data)
-const projectsData = [
-  { 
-    id: 1, 
-    title: "Flower Cutouts", 
-    category: "Illustration",
-    description: "종이를 오려낸 듯한 질감을 살린 플라워 패턴 시리즈입니다. 유기적인 형태와 비비드한 컬러의 조화를 실험했습니다.",
-    img: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&q=80&w=600&h=800", 
-    color: "bg-pink-300",
-  },
-  { 
-    id: 2, 
-    title: "April Typography", 
-    category: "Type Design",
-    description: "4월의 봄기운을 담은 커스텀 타이포그래피 작업입니다. 글자 자체에 생동감을 불어넣는 것에 집중했습니다.",
-    img: "https://images.unsplash.com/photo-1620619767323-b95a89183081?auto=format&fit=crop&q=80&w=600&h=800", 
-    color: "bg-blue-100",
-  },
-  { 
-    id: 3, 
-    title: "White Horses", 
-    category: "Branding",
-    description: "흑백 대비가 강렬한 앨범 커버 아트워크입니다. 클래식한 세리프 폰트를 현대적으로 재해석했습니다.",
-    img: "https://images.unsplash.com/photo-1534237710431-e2fc698436d0?auto=format&fit=crop&q=80&w=600&h=600", 
-    color: "bg-black text-white",
-  },
-  { 
-    id: 4, 
-    title: "Child Portrait", 
-    category: "Photography",
-    description: "필름 그레인 효과를 입힌 빈티지 인물 사진입니다. 일상의 찰나를 포착하여 감성적인 무드를 연출했습니다.",
-    img: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&q=80&w=500&h=500", 
-    color: "bg-stone-200",
-  },
-  { 
-    id: 5, 
-    title: "Big Pic Fabric", 
-    category: "Textile",
-    description: "텍스타일 디자인을 위한 패턴 스터디입니다. 오렌지 톤의 따뜻함과 직물의 질감을 시각적으로 표현했습니다.",
-    img: "https://images.unsplash.com/photo-1523293836414-f04e7c75901c?auto=format&fit=crop&q=80&w=600&h=400", 
-    color: "bg-orange-200",
-  },
-  { 
-    id: 6, 
-    title: "Glass Gloss", 
-    category: "3D Art",
-    description: "유리의 투명함과 왜곡을 표현한 3D 아트워크입니다. 빛의 굴절을 이용해 몽환적인 분위기를 자아냅니다.",
-    img: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=560&h=700", 
-    color: "bg-white",
-  },
-   { 
-    id: 7, 
-    title: "Blue Abstract", 
-    category: "Abstract",
-    description: "강렬한 파란색을 주제로 한 추상화 작업입니다. 형태의 해체를 통해 새로운 시각적 경험을 제공합니다.",
-    img: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&q=80&w=400&h=600", 
-    color: "bg-blue-600",
-  },
-];
+    <!-- 폰트 및 기본 스타일 -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        
+        /* 스크롤바 숨기기 (선택사항) */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+</head>
+<body class="bg-white text-stone-900">
+    <div id="root"></div>
 
-// Helper to generate random positions
-const generateRandomLayouts = (count) => {
-  return Array.from({ length: count }).map(() => ({
-    // Adjusted Top range: 25% ~ 85% (Starts lower to avoid header overlap)
-    top: Math.random() * 60 + 25, 
-    // Adjusted Left range: 10% ~ 90%
-    left: Math.random() * 80 + 10, 
-    rotate: Math.random() * 60 - 30, // -30deg ~ 30deg
-    zIndex: Math.floor(Math.random() * 20),
-  }));
-};
+    <!-- React 코드 시작 -->
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-export default function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [hoveredId, setHoveredId] = useState(null);
-  
-  // State for dynamic card positions
-  const [layouts, setLayouts] = useState([]);
-  
-  // Refs for scroll throttling
-  const scrollAccumulator = useRef(0);
-  const lastScrollY = useRef(0);
+        // --- 아이콘 컴포넌트 직접 정의 (CDN 환경에서는 import가 복잡하므로 직접 구현) ---
+        const Menu = ({ size = 24, strokeWidth = 2 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+        );
+        const X = ({ size = 24 }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 18"/></svg>
+        );
+        const ArrowUpRight = ({ className }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
+        );
 
-  // Initialize layouts on mount
-  useEffect(() => {
-    setLayouts(generateRandomLayouts(projectsData.length));
-    lastScrollY.current = window.scrollY;
-  }, []);
+        // --- 데이터 ---
+        const projectsData = [
+            { 
+                id: 1, 
+                title: "Flower Cutouts", 
+                category: "Illustration",
+                description: "종이를 오려낸 듯한 질감을 살린 플라워 패턴 시리즈입니다. 유기적인 형태와 비비드한 컬러의 조화를 실험했습니다.",
+                img: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&q=80&w=600&h=800", 
+                color: "bg-pink-300",
+            },
+            { 
+                id: 2, 
+                title: "April Typography", 
+                category: "Type Design",
+                description: "4월의 봄기운을 담은 커스텀 타이포그래피 작업입니다. 글자 자체에 생동감을 불어넣는 것에 집중했습니다.",
+                img: "https://images.unsplash.com/photo-1620619767323-b95a89183081?auto=format&fit=crop&q=80&w=600&h=800", 
+                color: "bg-blue-100",
+            },
+            { 
+                id: 3, 
+                title: "White Horses", 
+                category: "Branding",
+                description: "흑백 대비가 강렬한 앨범 커버 아트워크입니다. 클래식한 세리프 폰트를 현대적으로 재해석했습니다.",
+                img: "https://images.unsplash.com/photo-1534237710431-e2fc698436d0?auto=format&fit=crop&q=80&w=600&h=600", 
+                color: "bg-black text-white",
+            },
+            { 
+                id: 4, 
+                title: "Child Portrait", 
+                category: "Photography",
+                description: "필름 그레인 효과를 입힌 빈티지 인물 사진입니다. 일상의 찰나를 포착하여 감성적인 무드를 연출했습니다.",
+                img: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&q=80&w=500&h=500", 
+                color: "bg-stone-200",
+            },
+            { 
+                id: 5, 
+                title: "Big Pic Fabric", 
+                category: "Textile",
+                description: "텍스타일 디자인을 위한 패턴 스터디입니다. 오렌지 톤의 따뜻함과 직물의 질감을 시각적으로 표현했습니다.",
+                img: "https://images.unsplash.com/photo-1523293836414-f04e7c75901c?auto=format&fit=crop&q=80&w=600&h=400", 
+                color: "bg-orange-200",
+            },
+            { 
+                id: 6, 
+                title: "Glass Gloss", 
+                category: "3D Art",
+                description: "유리의 투명함과 왜곡을 표현한 3D 아트워크입니다. 빛의 굴절을 이용해 몽환적인 분위기를 자아냅니다.",
+                img: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=560&h=700", 
+                color: "bg-white",
+            },
+            { 
+                id: 7, 
+                title: "Blue Abstract", 
+                category: "Abstract",
+                description: "강렬한 파란색을 주제로 한 추상화 작업입니다. 형태의 해체를 통해 새로운 시각적 경험을 제공합니다.",
+                img: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&q=80&w=400&h=600", 
+                color: "bg-blue-600",
+            },
+        ];
 
-  // Handle Scroll to Shuffle
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const delta = Math.abs(currentScrollY - lastScrollY.current);
-      
-      scrollAccumulator.current += delta;
-      lastScrollY.current = currentScrollY;
+        // --- 메인 앱 컴포넌트 ---
+        const generateRandomLayouts = (count) => {
+            return Array.from({ length: count }).map(() => ({
+                top: Math.random() * 60 + 25, 
+                left: Math.random() * 80 + 10, 
+                rotate: Math.random() * 60 - 30,
+                zIndex: Math.floor(Math.random() * 20),
+            }));
+        };
 
-      // Threshold: Shuffle every 100px of scrolling
-      if (scrollAccumulator.current > 100) {
-        setLayouts(generateRandomLayouts(projectsData.length));
-        scrollAccumulator.current = 0;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Prevent scrolling when menu/modal is open
-  useEffect(() => {
-    if (isMenuOpen || selectedProject) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-  }, [isMenuOpen, selectedProject]);
-
-  return (
-    <div className="min-h-[200vh] bg-white font-sans overflow-x-hidden selection:bg-black selection:text-white">
-      
-      {/* Header / Logo Section */}
-      <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-start p-6 md:p-10 pointer-events-none">
-        <div className="pointer-events-auto cursor-pointer group" onClick={() => window.location.reload()}>
-          <div className="flex flex-col items-center">
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.85] text-center transition-transform hover:scale-105 duration-300">
-              ANNA<br/>MILLS
-            </h1>
-            <div className="mt-2 w-full max-w-[200px]">
-              <div className="flex justify-between text-[10px] font-mono font-bold tracking-widest leading-3 text-stone-800 opacity-80">
-                <span className="flex flex-col items-center">
-                   <span>x x x</span>
-                   <span>x &nbsp; x</span>
-                   <span>x &nbsp; x</span>
-                   <span>x x x</span>
-                </span>
-                <span className="flex flex-col items-center">
-                   <span>x x x</span>
-                   <span>x &nbsp; &nbsp;</span>
-                   <span>x x x</span>
-                   <span>x x x</span>
-                </span>
-                <span className="flex flex-col items-center">
-                   <span>x x x</span>
-                   <span>x &nbsp; &nbsp;</span>
-                   <span>x x x</span>
-                   <span>x x x</span>
-                   <span>x x x</span>
-                </span>
-                 <span className="flex flex-col items-center">
-                   <span>x &nbsp; &nbsp;</span>
-                   <span>x &nbsp; &nbsp;</span>
-                   <span>x &nbsp; &nbsp;</span>
-                   <span>x &nbsp; &nbsp;</span>
-                </span>
-                 <span className="flex flex-col items-center">
-                   <span>x x x</span>
-                   <span>x &nbsp; &nbsp;</span>
-                   <span>x &nbsp; x</span>
-                   <span>x x x</span>
-                </span>
-                 <span className="flex flex-col items-center">
-                   <span>x &nbsp; x</span>
-                   <span>x x x</span>
-                   <span>x &nbsp; x</span>
-                   <span>x &nbsp; x</span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button 
-          onClick={() => setIsMenuOpen(true)}
-          className="pointer-events-auto p-2 hover:opacity-50 transition-opacity"
-        >
-          <Menu size={32} strokeWidth={2.5} />
-        </button>
-      </header>
-
-      {/* Main Content - Dynamic Collage Area */}
-      <main className="fixed inset-0 w-full h-full pointer-events-none z-0">
-        <div className="relative w-full h-full max-w-7xl mx-auto">
-          {projectsData.map((project, index) => {
-            const layout = layouts[index] || { top: 50, left: 50, rotate: 0, zIndex: 1 };
-            const isHovered = hoveredId === project.id;
+        function App() {
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [selectedProject, setSelectedProject] = useState(null);
+            const [hoveredId, setHoveredId] = useState(null);
+            const [layouts, setLayouts] = useState([]);
             
+            const scrollAccumulator = useRef(0);
+            const lastScrollY = useRef(0);
+
+            useEffect(() => {
+                setLayouts(generateRandomLayouts(projectsData.length));
+                lastScrollY.current = window.scrollY;
+            }, []);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    const currentScrollY = window.scrollY;
+                    const delta = Math.abs(currentScrollY - lastScrollY.current);
+                    
+                    scrollAccumulator.current += delta;
+                    lastScrollY.current = currentScrollY;
+
+                    if (scrollAccumulator.current > 100) {
+                        setLayouts(generateRandomLayouts(projectsData.length));
+                        scrollAccumulator.current = 0;
+                    }
+                };
+
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            useEffect(() => {
+                if (isMenuOpen || selectedProject) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = 'unset';
+                }
+            }, [isMenuOpen, selectedProject]);
+
             return (
-              <div
-                key={project.id}
-                onMouseEnter={() => setHoveredId(project.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onClick={() => setSelectedProject(project)}
-                className={`
-                  absolute cursor-pointer pointer-events-auto
-                  transition-all duration-700 ease-in-out
-                `}
-                style={{
-                  top: `${layout.top}%`,
-                  left: `${layout.left}%`,
-                  transform: isHovered 
-                    ? `translate(-50%, -50%) scale(1.1) rotate(0deg)` 
-                    : `translate(-50%, -50%) rotate(${layout.rotate}deg)`,
-                  zIndex: isHovered ? 100 : layout.zIndex
-                }}
-              >
-                <div className={`
-                  relative group overflow-hidden rounded-lg shadow-lg
-                  ${project.color} p-2 md:p-3
-                  w-[160px] md:w-[280px]
-                `}>
-                   <div className="overflow-hidden rounded-md bg-white aspect-[4/5] relative">
-                     <img 
-                       src={project.img} 
-                       alt={project.title}
-                       className="w-full h-full object-cover mix-blend-multiply opacity-90 group-hover:opacity-100 transition-opacity"
-                     />
-                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <button className="bg-white px-4 py-2 text-sm font-bold uppercase tracking-widest shadow-md hover:bg-black hover:text-white transition-colors border-2 border-transparent hover:border-white">
-                          View
+                <div className="min-h-[200vh] bg-white font-sans overflow-x-hidden selection:bg-black selection:text-white relative">
+                    
+                    {/* Header */}
+                    <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-start p-6 md:p-10 pointer-events-none">
+                        <div className="pointer-events-auto cursor-pointer group" onClick={() => window.location.reload()}>
+                            <div className="flex flex-col items-center">
+                                <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.85] text-center transition-transform hover:scale-105 duration-300">
+                                    ANNA<br/>MILLS
+                                </h1>
+                                <div className="mt-2 w-full max-w-[200px]">
+                                    <div className="flex justify-between text-[10px] font-mono font-bold tracking-widest leading-3 text-stone-800 opacity-80">
+                                        <span className="flex flex-col items-center"><span>x x x</span><span>x &nbsp; x</span><span>x &nbsp; x</span><span>x x x</span></span>
+                                        <span className="flex flex-col items-center"><span>x x x</span><span>x &nbsp; &nbsp;</span><span>x x x</span><span>x x x</span></span>
+                                        <span className="flex flex-col items-center"><span>x x x</span><span>x &nbsp; &nbsp;</span><span>x x x</span><span>x x x</span><span>x x x</span></span>
+                                        <span className="flex flex-col items-center"><span>x &nbsp; &nbsp;</span><span>x &nbsp; &nbsp;</span><span>x &nbsp; &nbsp;</span><span>x &nbsp; &nbsp;</span></span>
+                                        <span className="flex flex-col items-center"><span>x x x</span><span>x &nbsp; &nbsp;</span><span>x &nbsp; x</span><span>x x x</span></span>
+                                        <span className="flex flex-col items-center"><span>x &nbsp; x</span><span>x x x</span><span>x &nbsp; x</span><span>x &nbsp; x</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onClick={() => setIsMenuOpen(true)} className="pointer-events-auto p-2 hover:opacity-50 transition-opacity">
+                            <Menu size={32} strokeWidth={2.5} />
                         </button>
-                     </div>
-                   </div>
+                    </header>
 
-                   {project.id === 3 && (
-                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-full pointer-events-none">
-                        <h3 className="font-serif italic text-3xl text-white drop-shadow-md">White<br/>Horses</h3>
-                     </div>
-                   )}
+                    {/* Content Area */}
+                    <main className="fixed inset-0 w-full h-full pointer-events-none z-0">
+                        <div className="relative w-full h-full max-w-7xl mx-auto">
+                            {projectsData.map((project, index) => {
+                                const layout = layouts[index] || { top: 50, left: 50, rotate: 0, zIndex: 1 };
+                                const isHovered = hoveredId === project.id;
+                                
+                                return (
+                                    <div
+                                        key={project.id}
+                                        onMouseEnter={() => setHoveredId(project.id)}
+                                        onMouseLeave={() => setHoveredId(null)}
+                                        onClick={() => setSelectedProject(project)}
+                                        className={`
+                                            absolute cursor-pointer pointer-events-auto
+                                            transition-all duration-700 ease-in-out
+                                        `}
+                                        style={{
+                                            top: `${layout.top}%`,
+                                            left: `${layout.left}%`,
+                                            transform: isHovered 
+                                                ? `translate(-50%, -50%) scale(1.1) rotate(0deg)` 
+                                                : `translate(-50%, -50%) rotate(${layout.rotate}deg)`,
+                                            zIndex: isHovered ? 100 : layout.zIndex
+                                        }}
+                                    >
+                                        <div className={`
+                                            relative group overflow-hidden rounded-lg shadow-lg
+                                            ${project.color} p-2 md:p-3
+                                            w-[160px] md:w-[280px]
+                                        `}>
+                                            <div className="overflow-hidden rounded-md bg-white aspect-[4/5] relative">
+                                                <img 
+                                                src={project.img} 
+                                                alt={project.title}
+                                                className="w-full h-full object-cover mix-blend-multiply opacity-90 group-hover:opacity-100 transition-opacity"
+                                                />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                                    <button className="bg-white px-4 py-2 text-sm font-bold uppercase tracking-widest shadow-md hover:bg-black hover:text-white transition-colors border-2 border-transparent hover:border-white">
+                                                        View
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {project.id === 3 && (
+                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center w-full pointer-events-none">
+                                                    <h3 className="font-serif italic text-3xl text-white drop-shadow-md">White<br/>Horses</h3>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </main>
+
+                    {/* Scroll Indicator */}
+                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10 animate-pulse">
+                        <p className="text-xs font-mono uppercase tracking-widest text-stone-400">Scroll to Shuffle</p>
+                    </div>
+
+                    {/* Modal */}
+                    {selectedProject && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                            <div className="absolute inset-0 bg-stone-900/80 backdrop-blur-sm transition-opacity" onClick={() => setSelectedProject(null)} />
+                            <div className="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in-up border-4 border-black flex flex-col md:flex-row">
+                                <button onClick={() => setSelectedProject(null)} className="absolute top-4 right-4 z-10 p-2 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors rounded-full">
+                                    <X size={24} />
+                                </button>
+                                <div className={`w-full md:w-1/2 ${selectedProject.color} p-8 flex items-center justify-center border-b-4 md:border-b-0 md:border-r-4 border-black`}>
+                                    <div className="relative shadow-xl rotate-[-2deg] border-4 border-white">
+                                        <img src={selectedProject.img} alt={selectedProject.title} className="w-full h-auto object-cover max-h-[50vh]" />
+                                    </div>
+                                </div>
+                                <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white">
+                                    <span className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">{selectedProject.category}</span>
+                                    <h2 className="text-4xl md:text-5xl font-black mb-6 leading-none">{selectedProject.title}</h2>
+                                    <p className="text-lg text-stone-600 leading-relaxed mb-8 font-medium">{selectedProject.description}</p>
+                                    <div className="mt-auto pt-8 border-t-2 border-stone-100 flex justify-between items-center">
+                                        <span className="font-mono text-sm text-stone-400">Project ID: #{selectedProject.id.toString().padStart(3, '0')}</span>
+                                        <button className="group flex items-center gap-2 text-lg font-bold hover:underline underline-offset-4 decoration-2">
+                                            Case Study <ArrowUpRight className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Full Screen Menu */}
+                    <div className={`fixed inset-0 bg-stone-900 text-stone-100 z-[100] transition-transform duration-500 ease-in-out ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`}>
+                        <div className="flex flex-col h-full p-6 md:p-10">
+                            <div className="flex justify-end">
+                                <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:text-stone-400 transition-colors">
+                                    <X size={32} />
+                                </button>
+                            </div>
+                            <nav className="flex-1 flex flex-col justify-center items-center space-y-6">
+                                {['About', 'Work', 'Contact'].map((item, idx) => (
+                                    <a key={idx} href={`#${item.toLowerCase()}`} onClick={() => setIsMenuOpen(false)} className="group flex items-center gap-4 text-6xl md:text-9xl font-black tracking-tighter hover:text-stone-400 transition-colors cursor-pointer">
+                                        <span>{item}</span>
+                                        <ArrowUpRight className="opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 md:w-20 md:h-20" />
+                                    </a>
+                                ))}
+                            </nav>
+                            <div className="text-center md:text-left md:flex justify-between items-end border-t border-stone-800 pt-8">
+                                <p className="text-sm text-stone-500 uppercase tracking-widest">© 2025 Anna Mills Design</p>
+                                <div className="flex gap-6 justify-center mt-4 md:mt-0">
+                                    <a href="#" className="text-stone-500 hover:text-white transition-colors">Instagram</a>
+                                    <a href="#" className="text-stone-500 hover:text-white transition-colors">Email</a>
+                                    <a href="#" className="text-stone-500 hover:text-white transition-colors">Behance</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
             );
-          })}
-        </div>
-      </main>
+        }
 
-      {/* Scroll indicator text */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 text-center pointer-events-none z-10 animate-pulse">
-        <p className="text-xs font-mono uppercase tracking-widest text-stone-400">Scroll to Shuffle</p>
-      </div>
-
-      {/* Project Detail Modal */}
-      {selectedProject && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-stone-900/80 backdrop-blur-sm transition-opacity"
-            onClick={() => setSelectedProject(null)}
-          />
-          <div className="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in-up border-4 border-black flex flex-col md:flex-row">
-            <button 
-              onClick={() => setSelectedProject(null)}
-              className="absolute top-4 right-4 z-10 p-2 bg-white border-2 border-black hover:bg-black hover:text-white transition-colors rounded-full"
-            >
-              <X size={24} />
-            </button>
-            <div className={`w-full md:w-1/2 ${selectedProject.color} p-8 flex items-center justify-center border-b-4 md:border-b-0 md:border-r-4 border-black`}>
-               <div className="relative shadow-xl rotate-[-2deg] border-4 border-white">
-                  <img 
-                    src={selectedProject.img} 
-                    alt={selectedProject.title} 
-                    className="w-full h-auto object-cover max-h-[50vh]"
-                  />
-               </div>
-            </div>
-            <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white">
-               <span className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
-                 {selectedProject.category}
-               </span>
-               <h2 className="text-4xl md:text-5xl font-black mb-6 leading-none">
-                 {selectedProject.title}
-               </h2>
-               <p className="text-lg text-stone-600 leading-relaxed mb-8 font-medium">
-                 {selectedProject.description}
-               </p>
-               <div className="mt-auto pt-8 border-t-2 border-stone-100 flex justify-between items-center">
-                  <span className="font-mono text-sm text-stone-400">Project ID: #{selectedProject.id.toString().padStart(3, '0')}</span>
-                  <button className="group flex items-center gap-2 text-lg font-bold hover:underline underline-offset-4 decoration-2">
-                    Case Study <ArrowUpRight className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                  </button>
-               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Full Screen Menu Overlay */}
-      <div className={`
-        fixed inset-0 bg-stone-900 text-stone-100 z-[100] transition-transform duration-500 ease-in-out
-        ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}
-      `}>
-        <div className="flex flex-col h-full p-6 md:p-10">
-          <div className="flex justify-end">
-            <button 
-              onClick={() => setIsMenuOpen(false)}
-              className="p-2 hover:text-stone-400 transition-colors"
-            >
-              <X size={32} strokeWidth={2.5} />
-            </button>
-          </div>
-          <nav className="flex-1 flex flex-col justify-center items-center space-y-6">
-            {['About', 'Work', 'Contact'].map((item, idx) => (
-              <a 
-                key={idx} 
-                href={`#${item.toLowerCase()}`}
-                onClick={() => setIsMenuOpen(false)}
-                className="group flex items-center gap-4 text-6xl md:text-9xl font-black tracking-tighter hover:text-stone-400 transition-colors cursor-pointer"
-              >
-                <span>{item}</span>
-                <ArrowUpRight className="opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 md:w-20 md:h-20" />
-              </a>
-            ))}
-          </nav>
-          <div className="text-center md:text-left md:flex justify-between items-end border-t border-stone-800 pt-8">
-            <p className="text-sm text-stone-500 uppercase tracking-widest">© 2025 Anna Mills Design</p>
-            <div className="flex gap-6 justify-center mt-4 md:mt-0">
-               <a href="#" className="text-stone-500 hover:text-white transition-colors">Instagram</a>
-               <a href="#" className="text-stone-500 hover:text-white transition-colors">Email</a>
-               <a href="#" className="text-stone-500 hover:text-white transition-colors">Behance</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
